@@ -1,0 +1,134 @@
+ diyetisyen tablosu:
+
+CREATE TABLE diyetisyen (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ad VARCHAR(50),
+    soyad VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    telefon VARCHAR(20),
+    sifre VARCHAR(100)
+);
+ musteri tablosu:
+
+CREATE TABLE musteri (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ad VARCHAR(50),
+    soyad VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    telefon VARCHAR(20),
+    dogum_tarihi DATE,
+    cinsiyet ENUM('Erkek','Kadın'),
+    boy_cm INT,
+    kilo_kg FLOAT,
+    diyetisyen_id INT,
+    FOREIGN KEY (diyetisyen_id) REFERENCES diyetisyen(id)
+);
+ diyet_plani tablosu:
+
+CREATE TABLE diyet_plani (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    musteri_id INT,
+    baslangic_tarihi DATE,
+    bitis_tarihi DATE,
+    aciklama TEXT,
+    FOREIGN KEY (musteri_id) REFERENCES musteri(id)
+);
+ ogun tablosu:
+
+CREATE TABLE ogun (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    diyet_plani_id INT,
+    tarih DATE,
+    ogun_turu ENUM('Kahvaltı','Öğle','Akşam','Ara Öğün'),
+    icerik TEXT,
+    kalori INT,
+    FOREIGN KEY (diyet_plani_id) REFERENCES diyet_plani(id)
+);
+ olcumler tablosu:
+
+CREATE TABLE olcumler (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    musteri_id INT,
+    tarih DATE,
+    kilo_kg FLOAT,
+    yag_orani FLOAT,
+    kas_orani FLOAT,
+    FOREIGN KEY (musteri_id) REFERENCES musteri(id)
+);
+ geribildirim tablosu:
+
+CREATE TABLE geribildirim (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    musteri_id INT,
+    diyetisyen_id INT,
+    tarih DATE,
+    yorum TEXT,
+    FOREIGN KEY (musteri_id) REFERENCES musteri(id),
+    FOREIGN KEY (diyetisyen_id) REFERENCES diyetisyen(id)
+);
+7️ log_kayitlari tablosu:
+
+CREATE TABLE log_kayitlari (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mesaj TEXT,
+    zaman DATETIME
+);
+
+   İlişkiler (Entity-Relationship)
+Bir diyetisyen, birden fazla müşteriye sahip olabilir.
+
+Bir müşteri, sadece bir diyetisyene bağlıdır.
+
+Bir müşteri, birden fazla diyet planına sahip olabilir.
+
+Bir diyet planı, birden fazla öğün içerir.
+
+Bir müşteri, birçok ölçüm ve geribildirim gönderebilir.
+
+Bir log, sistem olaylarını kronolojik tutar.
+
+
+Örnek SQL Sorguları
+
+
+ Müşteri ve Diyetisyen İlişkisi
+
+SELECT 
+    m.ad AS musteri_ad,
+    m.soyad AS musteri_soyad,
+    d.ad AS diyetisyen_ad,
+    d.soyad AS diyetisyen_soyad
+FROM musteri m
+JOIN diyetisyen d ON m.diyetisyen_id = d.id;
+
+
+📅 Müşteri Diyet Planları
+
+SELECT 
+    m.ad, m.soyad, 
+    dp.baslangic_tarihi, dp.bitis_tarihi,
+    dp.aciklama
+FROM diyet_plani dp
+JOIN musteri m ON dp.musteri_id = m.id;
+
+
+
+⚖️ İsmail Aksan'ın Ölçümleri
+
+SELECT 
+    o.tarih, o.kilo_kg, o.yag_orani, o.kas_orani
+FROM olcumler o
+JOIN musteri m ON o.musteri_id = m.id
+WHERE m.ad = 'İsmail' AND m.soyad = 'aksan'
+ORDER BY o.tarih;
+
+
+
+🍽️ Emirhan'ın Öğünleri
+
+SELECT 
+    o.tarih, o.ogun_turu, o.icerik, o.kalori
+FROM ogun o
+JOIN diyet_plani dp ON o.diyet_plani_id = dp.id
+JOIN musteri m ON dp.musteri_id = m.id
+WHERE m.ad = 'Emirhan';
